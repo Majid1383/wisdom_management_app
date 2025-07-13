@@ -1,0 +1,100 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wisdom_management_app/screens/tabs/profile/register_student_screen/register_student.dart';
+import '../../../models/new_student_model/new_student.dart';
+import '../../../widgets /global_drawer/global_drawer.dart';
+
+class AllStudentsScreen extends StatefulWidget {
+  const AllStudentsScreen({super.key});
+
+  @override
+  State<AllStudentsScreen> createState() => _AllStudentsScreenState();
+}
+
+class _AllStudentsScreenState extends State<AllStudentsScreen> {
+  List<Student> students = [];
+
+  Future<void> _navigateAndAddStudent() async {
+    final newStudent = await Navigator.push<Student>(
+      context,
+      MaterialPageRoute(builder: (_) => const RegisterStudentScreen()),
+    );
+
+    if (newStudent != null) {
+      setState(() {
+        students.add(newStudent);
+      });
+      await _saveStudents();
+    }
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStudents();
+  }
+
+  Future<void> _loadStudents() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? data = prefs.getString('students');
+    if (data != null) {
+      final List decoded = jsonDecode(data);
+      setState(() {
+        students = decoded.map((e) => Student.fromMap(e)).toList();
+      });
+    }
+  }
+
+  Future<void> _saveStudents() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String data = jsonEncode(students.map((s) => s.toMap()).toList());
+    await prefs.setString('students', data);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      drawer: const GlobalDrawer(),
+      body: students.isEmpty
+          ? const Center(child: Text('No students registered yet.'))
+          : ListView.builder(
+        itemCount: students.length,
+        itemBuilder: (context, index) {
+          final student = students[index];
+          return Card(
+            elevation: 2,
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: ListTile(
+              title: Text(student.name),
+              subtitle: Text("Class: ${student.studentClass}"),
+              trailing: Text(
+                "Joined: ${student.joined.day}/${student.joined.month}/${student.joined.year}",
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
+        onPressed: () async {
+          final newStudent = await Navigator.push<Student>(
+            context,
+            MaterialPageRoute(builder: (_) => const RegisterStudentScreen()),
+          );
+
+          if (newStudent != null) {
+            setState(() {
+              students.add(newStudent);
+            });
+            await _saveStudents(); // save locally
+          }
+        },
+        child: const Icon(Icons.add),
+        tooltip: 'Add New Student',
+      ),
+    );
+  }
+}
