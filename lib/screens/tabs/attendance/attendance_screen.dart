@@ -32,7 +32,7 @@ class AttendanceScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: ColorManager.lightCoolGrey,
-      drawer: const GlobalDrawer(),
+      drawer:  GlobalDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(

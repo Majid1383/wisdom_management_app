@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "927277456224",
+    "project_id": "wisdom-management-app",
+    "storage_bucket": "wisdom-management-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:927277456224:android:ca4733f5170476bf2adc05",
+        "android_client_info": {
+          "package_name": "com.example.wisdom_management_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy2oledXRiu8_lz7k6-WMImDOntX9PjQ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

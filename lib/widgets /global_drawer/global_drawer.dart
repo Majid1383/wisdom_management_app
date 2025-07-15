@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../screens/login/login_screen.dart';
+import '../../services/auth_service.dart';
+
 // class GlobalDrawer extends StatelessWidget {
 //   const GlobalDrawer({super.key});
 //
@@ -76,8 +79,9 @@ import 'package:flutter/material.dart';
 
 class GlobalDrawer extends StatelessWidget {
   final Future<void> Function()? onAddStudent;
+  final AuthService _authService = AuthService();
 
-  const GlobalDrawer({super.key, this.onAddStudent});
+   GlobalDrawer({super.key, this.onAddStudent});
 
   @override
   Widget build(BuildContext context) {
@@ -131,10 +135,35 @@ class GlobalDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Logout'),
-            onTap: () {
-              Navigator.pop(context);
+            onTap: () async {
+              final shouldLogout = await showDialog<bool>(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?', style: TextStyle(color: Colors.black)),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+              if (shouldLogout == true) {
+                await _authService.logout();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (route) => false,
+                );
+              }
             },
           ),
+
         ],
       ),
     );

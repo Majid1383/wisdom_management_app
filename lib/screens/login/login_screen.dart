@@ -1,10 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wisdom_management_app/constants/user_type.dart';
+import 'package:wisdom_management_app/services/auth_service.dart';
 import '../../constants/admin_constans.dart';
 import '../../theme/color_manager.dart';
+import '../register/register_screen.dart';
 import '../tabs/home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
+
   const LoginScreen({super.key});
 
   @override
@@ -12,6 +16,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+
+  final AuthService _authService = AuthService();
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _adminKeyController = TextEditingController();
@@ -21,16 +28,63 @@ class _LoginScreenState extends State<LoginScreen> {
   bool get _isAdmin =>
       _emailController.text.trim().toLowerCase() == AdminConstants.adminEmail;
 
-  void _onLoginPressed() {
+  // void _onLoginPressed() {
+  //   if (_formKey.currentState!.validate()) {
+  //     final email = _emailController.text.trim().toLowerCase();
+  //     final password = _passwordController.text.trim();
+  //
+  //     if (email == AdminConstants.adminEmail) {
+  //       // Check admin key
+  //       final adminKey = _adminKeyController.text.trim();
+  //       if (adminKey == AdminConstants.adminPassKey) {
+  //         // Admin login successful
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Admin Login Successful!'), backgroundColor: Colors.green),
+  //         );
+  //         Future.delayed(const Duration(milliseconds: 500), () {
+  //           Navigator.pushReplacement(
+  //             context,
+  //             MaterialPageRoute(builder: (_) => const HomeScreen(userType: UserType.admin)),
+  //           );
+  //         });
+  //       } else {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Invalid admin key!'), backgroundColor: Colors.red),
+  //         );
+  //       }
+  //     } else {
+  //       // Normal student login (demo)
+  //       const demoEmail = 'demo@user.com';
+  //       const demoPassword = '123456';
+  //
+  //       if (email == demoEmail && password == demoPassword) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Login Successful!'), backgroundColor: Colors.green),
+  //         );
+  //         Future.delayed(const Duration(milliseconds: 500), () {
+  //           Navigator.pushReplacement(
+  //             context,
+  //             MaterialPageRoute(builder: (_) => const HomeScreen(userType: UserType.student)),
+  //           );
+  //         });
+  //       } else {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Invalid credentials.'), backgroundColor: Colors.red),
+  //         );
+  //       }
+  //     }
+  //   }
+  // }
+
+
+  void _onLoginPressed() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim().toLowerCase();
       final password = _passwordController.text.trim();
 
       if (email == AdminConstants.adminEmail) {
-        // Check admin key
         final adminKey = _adminKeyController.text.trim();
         if (adminKey == AdminConstants.adminPassKey) {
-          // Admin login successful
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Admin Login Successful!'), backgroundColor: Colors.green),
           );
@@ -46,25 +100,44 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       } else {
-        // Normal student login (demo)
-        const demoEmail = 'demo@user.com';
-        const demoPassword = '123456';
-
-        if (email == demoEmail && password == demoPassword) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login Successful!'), backgroundColor: Colors.green),
-          );
-          Future.delayed(const Duration(milliseconds: 500), () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const HomeScreen(userType: UserType.student)),
+        // Firebase student login
+        try {
+          final user = await _authService.login(email: email, password: password);
+          if (user != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Login Successful!'), backgroundColor: Colors.green),
             );
-          });
-        } else {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomeScreen(userType: UserType.student)),
+              );
+            });
+          }
+        } on FirebaseAuthException catch (e) {
+          String message = 'Registration failed.';
+          switch (e.code) {
+            case 'email-already-in-use':
+              message = 'This email is already registered.';
+              break;
+            case 'weak-password':
+              message = 'Password should be at least 6 characters.';
+              break;
+            case 'invalid-email':
+              message = 'The email address is not valid.';
+              break;
+            default:
+              message = e.message ?? 'Something went wrong. Please try again.';
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Invalid credentials.'), backgroundColor: Colors.red),
+            SnackBar(content: Text(message), backgroundColor: Colors.red),
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('An unexpected error occurred: ${e.toString()}'), backgroundColor: Colors.red),
           );
         }
+
       }
     }
   }
@@ -185,6 +258,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: const Icon(Icons.login),
                             label: const Text('Login'),
                           ),
+                        ),
+
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                            );
+                          },
+                          child: const Text('Don\'t have an account? Register'),
                         ),
                       ],
                     ),

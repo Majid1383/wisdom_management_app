@@ -4,6 +4,8 @@ import 'package:wisdom_management_app/screens/tabs/all_students/all_student_scre
 import 'package:wisdom_management_app/screens/tabs/profile/profile_screen.dart';
 import '../../../models/attendance_model/monthly_attendance.dart';
 import '../../../models/new_student_model/new_student.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/firestore_service.dart';
 import '../../../theme/color_manager.dart';
 import '../../../widgets /global_drawer/global_drawer.dart';
 import '../attendance/attendance_screen.dart';
@@ -21,43 +23,41 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final Student dummyStudent = Student(
-      uuid: '123-abc',
-      name: 'DummyAccount',
-      school: 'School',
-      studentClass: 'studentClass',
-      address: 'address',
-      fatherPhone: 'fatherPhone',
-      motherPhone: 'motherPhone',
-      dob: DateTime(2010, 5, 15),
-      joined: DateTime(2010, 5, 15),
-      type: UserType.student) ;
+  final FirestoreService _firestoreService = FirestoreService();
+  final AuthService _authService = AuthService();
 
-  List<Widget> get _pages {
-    if (widget.userType == UserType.admin) {
-      return [
-        const _DashboardTab(),
-        const AttendanceScreen(),
-        HolidaysScreen(userType: widget.userType),
-        const Center(child: Text('Fees Placeholder')),
-        const AllStudentsScreen(),
-        ProfileScreen(student: dummyStudent),
-      ];
-    } else {
-      return [
-        const _DashboardTab(),
-        const AttendanceScreen(),
-        HolidaysScreen(userType: widget.userType),
-        ProfileScreen(student: dummyStudent),
-      ];
+  late Future<List<Student>> _studentsFuture;
+
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.userType == UserType.student) {
+      _studentsFuture = _loadStudentData();
+
     }
+  }
+
+  Future<List<Student>> _loadStudentData() async {
+    final currentUser = _authService.currentUser;
+    final parentEmail = currentUser?.email;
+    if (parentEmail != null) {
+      return await _firestoreService.getStudentsByParentEmail(parentEmail);
+    }
+    return [];
+  }
+
+
+
+  void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
   }
 
   List<BottomNavigationBarItem> get _bottomNavItems {
     if (widget.userType == UserType.admin) {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-        BottomNavigationBarItem(icon: Icon(Icons.check_circle_outline), label: 'Attendance'),
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.check_circle_outline), label: 'In/Out'),
         BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Holidays'),
         BottomNavigationBarItem(icon: Icon(Icons.attach_money), label: 'Fees'),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: 'All'),
@@ -73,19 +73,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildScaffold(List<Widget> pages) {
     return Scaffold(
-      drawer: widget.userType == UserType.admin ? const GlobalDrawer() : null, // 👈 show only if admin
+      drawer: widget.userType == UserType.admin ?  GlobalDrawer() : null,
       backgroundColor: ColorManager.lightCoolGrey,
       appBar: AppBar(
         title: const Text('Wisdom Tutorials'),
       ),
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -97,6 +92,124 @@ class _HomeScreenState extends State<HomeScreen> {
         showUnselectedLabels: false,
         items: _bottomNavItems,
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.userType == UserType.admin) {
+      final adminPages = [
+        const _DashboardTab(),
+        const AttendanceScreen(),
+        HolidaysScreen(userType: widget.userType),
+        const Center(child: Text('Fees Placeholder')),
+        const AllStudentsScreen(),
+        // Dummy Profile for admin (optional)
+        const Center(child: Text('Admin Profile')),
+      ];
+      return _buildScaffold(adminPages);
+    }
+
+    // Parent/student view → load student data first
+    // return FutureBuilder<Student?>(
+    //   future: _studentFuture,
+    //   builder: (context, snapshot) {
+    //     if (snapshot.connectionState == ConnectionState.waiting) {
+    //       return const Scaffold(
+    //         body: Center(child: CircularProgressIndicator()),
+    //       );
+    //     }
+    //     if (snapshot.hasError) {
+    //       return Scaffold(
+    //         body: Center(child: Text('Error: ${snapshot.error}')),
+    //       );
+    //     }
+    //     final student = snapshot.data;
+    //     if (student == null) {
+    //       return const Scaffold(
+    //         body: Center(child: Text('No student data found')),
+    //       );
+    //     }
+    //
+    //     return FutureBuilder<List<Student>>(
+    //       future: _studentsFuture,
+    //       builder: (context, snapshot) {
+    //         if (snapshot.connectionState == ConnectionState.waiting) {
+    //           return const Scaffold(
+    //             body: Center(child: CircularProgressIndicator()),
+    //           );
+    //         }
+    //         if (snapshot.hasError) {
+    //           return Scaffold(
+    //             body: Center(child: Text('Error: ${snapshot.error}')),
+    //           );
+    //         }
+    //         final students = snapshot.data ?? [];
+    //         if (students.isEmpty) {
+    //           return const Scaffold(
+    //             body: Center(child: Text('No student data found')),
+    //           );
+    //         }
+    //
+    //         // For now: just use first student
+    //         final student = students.first;
+    //
+    //         final studentPages = [
+    //           const _DashboardTab(),
+    //           const AttendanceScreen(),
+    //           HolidaysScreen(userType: widget.userType),
+    //           ProfileScreen(student: student),
+    //         ];
+    //         return _buildScaffold(studentPages);
+    //       },
+    //     );
+    //
+    //
+    //     final studentPages = [
+    //       const _DashboardTab(),
+    //       const AttendanceScreen(),
+    //       HolidaysScreen(userType: widget.userType),
+    //       ProfileScreen(student: student),
+    //     ];
+    //     return _buildScaffold(studentPages);
+    //   },
+    // );
+
+    return FutureBuilder<List<Student>>(
+      future: _studentsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        }
+        final students = snapshot.data ?? [];
+        if (students.isEmpty) {
+          return const Scaffold(
+            body: Center(child: Text('No student data found')),
+          );
+        }
+
+        // For now: use the first student in the list
+        final student = students.first;
+
+
+
+        final studentPages = [
+          const _DashboardTab(),
+          const AttendanceScreen(),
+          HolidaysScreen(userType: widget.userType),
+          ProfileScreen(student: student),
+
+        ];
+
+        return _buildScaffold(studentPages);
+      },
     );
   }
 }
