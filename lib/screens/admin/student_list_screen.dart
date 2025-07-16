@@ -74,7 +74,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
             elevation:  2,
             margin:  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: ListTile(
-              title: Text(student.name),
+              title: Text(student.fullName),
               subtitle: Text('Class : ${student.studentClass}'),
               trailing: Text(
                 'Joined: ${student.joined.day}/${student.joined.month}/${student.joined.year}',

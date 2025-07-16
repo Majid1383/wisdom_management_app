@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wisdom_management_app/models/holiday_model/holiday_model.dart';
 
 import '../models/new_student_model/new_student.dart';
 
@@ -55,8 +56,5 @@ class FirestoreService {
   Future<void> updateStudent(Student student) async {
     await _firestore.collection('students').doc(student.uuid).update(student.toMap());
   }
-
-
-
 }
 

@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:wisdom_management_app/constants/user_type.dart';
+import 'package:wisdom_management_app/screens/tabs/profile/register_student_screen/register_student.dart';
 import 'package:wisdom_management_app/services/auth_service.dart';
 import '../../constants/admin_constans.dart';
 import '../../theme/color_manager.dart';
-import '../register/register_screen.dart';
 import '../tabs/home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -264,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                              MaterialPageRoute(builder: (_) => const RegisterStudentScreen()),
                             );
                           },
                           child: const Text('Don\'t have an account? Register'),

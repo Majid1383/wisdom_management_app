@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../models/new_student_model/new_student.dart';
 import '../../../../services/firestore_service.dart';
 
-
 class EditStudentScreen extends StatefulWidget {
   final Student student;
 
@@ -14,19 +13,23 @@ class EditStudentScreen extends StatefulWidget {
 
 class _EditStudentScreenState extends State<EditStudentScreen> {
   final _formKey = GlobalKey<FormState>();
-  late String name;
+  final FirestoreService firestoreService = FirestoreService();
+
+  late String firstName;
+  late String? middleName;
+  late String lastName;
   late String studentClass;
   late String fatherPhone;
   late String motherPhone;
   late String address;
   late String? parentEmail;
 
-  final FirestoreService firestoreService = FirestoreService();
-
   @override
   void initState() {
     super.initState();
-    name = widget.student.name;
+    firstName = widget.student.firstName;
+    middleName = widget.student.middleName;
+    lastName = widget.student.lastName;
     studentClass = widget.student.studentClass;
     fatherPhone = widget.student.fatherPhone;
     motherPhone = widget.student.motherPhone;
@@ -36,8 +39,12 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
 
   Future<void> _saveChanges() async {
     if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
       final updatedStudent = widget.student.copyWith(
-        name: name,
+        firstName: firstName,
+        middleName: middleName,
+        lastName: lastName,
         studentClass: studentClass,
         fatherPhone: fatherPhone,
         motherPhone: motherPhone,
@@ -48,7 +55,10 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
       await firestoreService.updateStudent(updatedStudent);
 
       if (!mounted) return;
-      Navigator.pop(context); // go back
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully!'), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context);
     }
   }
 
@@ -56,52 +66,104 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Student'),
+        title: const Text('Edit Student Profile'),
         backgroundColor: Colors.deepPurple,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
-              TextFormField(
-                initialValue: name,
-                decoration: const InputDecoration(labelText: 'Name'),
-                onChanged: (value) => name = value,
-                validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+              Card(
+                elevation: 3,
+                margin: const EdgeInsets.only(bottom: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        initialValue: firstName,
+                        decoration: const InputDecoration(labelText: 'First Name'),
+                        onSaved: (v) => firstName = v!.trim(),
+                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        initialValue: middleName ?? '',
+                        decoration: const InputDecoration(labelText: 'Middle Name (optional)'),
+                        onSaved: (v) => middleName = v!.trim().isEmpty ? null : v.trim(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        initialValue: lastName,
+                        decoration: const InputDecoration(labelText: 'Last Name'),
+                        onSaved: (v) => lastName = v!.trim(),
+                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              TextFormField(
-                initialValue: studentClass,
-                decoration: const InputDecoration(labelText: 'Class'),
-                onChanged: (value) => studentClass = value,
-                validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+
+              Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        initialValue: studentClass,
+                        decoration: const InputDecoration(labelText: 'Class'),
+                        onSaved: (v) => studentClass = v!.trim(),
+                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        initialValue: fatherPhone,
+                        decoration: const InputDecoration(labelText: "Father's Phone"),
+                        keyboardType: TextInputType.phone,
+                        onSaved: (v) => fatherPhone = v!.trim(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        initialValue: motherPhone,
+                        decoration: const InputDecoration(labelText: "Mother's Phone"),
+                        keyboardType: TextInputType.phone,
+                        onSaved: (v) => motherPhone = v!.trim(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        initialValue: address,
+                        decoration: const InputDecoration(labelText: 'Address'),
+                        onSaved: (v) => address = v!.trim(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        initialValue: parentEmail,
+                        decoration: const InputDecoration(labelText: 'Parent Email'),
+                        onSaved: (v) => parentEmail = v!.trim(),
+                        validator: (v) =>
+                        v != null && v.isNotEmpty && !v.contains('@') ? 'Invalid email' : null,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              TextFormField(
-                initialValue: fatherPhone,
-                decoration: const InputDecoration(labelText: 'Father\'s Phone'),
-                onChanged: (value) => fatherPhone = value,
-              ),
-              TextFormField(
-                initialValue: motherPhone,
-                decoration: const InputDecoration(labelText: 'Mother\'s Phone'),
-                onChanged: (value) => motherPhone = value,
-              ),
-              TextFormField(
-                initialValue: address,
-                decoration: const InputDecoration(labelText: 'Address'),
-                onChanged: (value) => address = value,
-              ),
-              TextFormField(
-                initialValue: parentEmail,
-                decoration: const InputDecoration(labelText: 'Parent Email'),
-                onChanged: (value) => parentEmail = value,
-              ),
+
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveChanges,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
-                child: const Text('Save Changes'),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _saveChanges,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Save Changes'),
+                ),
               ),
             ],
           ),

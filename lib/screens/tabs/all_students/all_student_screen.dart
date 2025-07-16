@@ -42,7 +42,7 @@ class AllStudentsScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (_) => EditStudentScreen(student: student)),
                     );
                   },
-                  title: Text(student.name),
+                  title: Text(student.fullName),
                   subtitle: Text("Class: ${student.studentClass}"),
                   trailing: Text(
                     "Joined: ${student.joined.day}/${student.joined.month}/${student.joined.year}",

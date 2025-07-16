@@ -17,35 +17,35 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
   final FirestoreService _firestoreService = FirestoreService();
 
   bool _isLoading = false;
-
-  // User type toggle
   UserType selectedType = UserType.student;
 
   // Form fields
-  String fullName = '';
+  String firstName = '';
+  String? middleName;
+  String lastName = '';
   String school = '';
   String studentClass = '';
   String address = '';
   String parentEmail = '';
   String fatherPhone = '';
   String motherPhone = '';
+  double yearlyFeeTarget = 0;
+  String? remarks;
   DateTime? dob;
   DateTime? joiningDate;
 
-  // Pick date helper
+  // Date picker
   Future<void> _selectDate({
     required DateTime? initialDate,
     required ValueChanged<DateTime> onDateSelected,
   }) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: initialDate ?? DateTime(2015, 1, 1),
-      firstDate: DateTime(2000),
+      initialDate: initialDate ?? DateTime(2010, 1, 1),
+      firstDate: DateTime(1990),
       lastDate: DateTime(2100),
     );
-    if (picked != null) {
-      onDateSelected(picked);
-    }
+    if (picked != null) onDateSelected(picked);
   }
 
   // Save student
@@ -62,16 +62,19 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
 
       final newStudent = Student(
         uuid: uuid,
-        name: fullName,
+        firstName: firstName,
+        middleName: middleName,
+        lastName: lastName,
         school: school,
         studentClass: studentClass,
         address: address,
         parentEmail: parentEmail,
         fatherPhone: fatherPhone,
         motherPhone: motherPhone,
-        dob: dob ?? DateTime.now(),
-        joined: joiningDate ?? DateTime.now(),
-        // type: selectedType,
+        dob: dob!,
+        joined: joiningDate!,
+        yearlyFeeTarget: yearlyFeeTarget,
+        remarks: remarks,
       );
 
       setState(() => _isLoading = true);
@@ -80,7 +83,7 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Student registered successfully!'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context); // go back on success
+        Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error adding student: $e'), backgroundColor: Colors.red),
@@ -91,11 +94,136 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
     }
   }
 
+  Widget _buildNameFields() {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'First Name'),
+              validator: (v) => v == null || v.isEmpty ? 'Enter first name' : null,
+              onSaved: (v) => firstName = v!.trim(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Middle Name (optional)'),
+              onSaved: (v) => middleName = v?.trim().isEmpty ?? true ? null : v!.trim(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Last Name'),
+              validator: (v) => v == null || v.isEmpty ? 'Enter last name' : null,
+              onSaved: (v) => lastName = v!.trim(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStudentFields() {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'School'),
+              validator: (v) => v == null || v.isEmpty ? 'Enter school' : null,
+              onSaved: (v) => school = v!.trim(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Class'),
+              validator: (v) => v == null || v.isEmpty ? 'Enter class' : null,
+              onSaved: (v) => studentClass = v!.trim(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Complete Address'),
+              validator: (v) => v == null || v.isEmpty ? 'Enter address' : null,
+              onSaved: (v) => address = v!.trim(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: "Parent's Email"),
+              validator: (v) => v == null || !v.contains('@') ? 'Enter valid email' : null,
+              onSaved: (v) => parentEmail = v!.trim(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: "Father's Phone"),
+              keyboardType: TextInputType.phone,
+              validator: (v) => v == null || v.isEmpty ? 'Enter father\'s phone' : null,
+              onSaved: (v) => fatherPhone = v!.trim(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: "Mother's Phone"),
+              keyboardType: TextInputType.phone,
+              validator: (v) => v == null || v.isEmpty ? 'Enter mother\'s phone' : null,
+              onSaved: (v) => motherPhone = v!.trim(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Yearly Fee Target'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Enter yearly fee target' : null,
+              onSaved: (v) => yearlyFeeTarget = double.tryParse(v ?? '0') ?? 0,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Remarks (optional)'),
+              onSaved: (v) => remarks = v?.trim(),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(dob == null
+                      ? 'Select Date of Birth'
+                      : 'DOB: ${dob!.day}/${dob!.month}/${dob!.year}'),
+                ),
+                TextButton(
+                  onPressed: () => _selectDate(
+                      initialDate: dob, onDateSelected: (picked) => setState(() => dob = picked)),
+                  child: const Text('Pick'),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(joiningDate == null
+                      ? 'Select Joining Date'
+                      : 'Joined: ${joiningDate!.day}/${joiningDate!.month}/${joiningDate!.year}'),
+                ),
+                TextButton(
+                  onPressed: () => _selectDate(
+                      initialDate: joiningDate,
+                      onDateSelected: (picked) => setState(() => joiningDate = picked)),
+                  child: const Text('Pick'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register New User'),
+        title: const Text('Register New Student'),
         backgroundColor: Colors.deepPurple,
       ),
       body: SingleChildScrollView(
@@ -103,12 +231,10 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('User ID: $uuid', style: const TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 16),
 
-              // Toggle
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -127,92 +253,13 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 16),
+              _buildNameFields(),
 
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Full Name'),
-                validator: (v) => v == null || v.isEmpty ? 'Please enter full name' : null,
-                onSaved: (v) => fullName = v!,
-              ),
-
-              if (selectedType == UserType.student) ...[
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'School'),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter school' : null,
-                  onSaved: (v) => school = v!,
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Class'),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter class' : null,
-                  onSaved: (v) => studentClass = v!,
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Complete Address'),
-                  validator: (v) => v == null || v.isEmpty ? 'Enter address' : null,
-                  onSaved: (v) => address = v!,
-                ),
-
-                TextFormField(
-                  decoration: const InputDecoration(labelText: "Parent's Email"),
-                  validator: (value) => value == null || !value.contains('@')
-                      ? 'Enter valid parent email'
-                      : null,
-                  onSaved: (value) => parentEmail = value!,
-                ),
-
-
-                TextFormField(
-                  decoration: const InputDecoration(labelText: "Father's Phone"),
-                  keyboardType: TextInputType.phone,
-                  validator: (v) => v == null || v.isEmpty ? 'Enter father\'s phone' : null,
-                  onSaved: (v) => fatherPhone = v!,
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: "Mother's Phone"),
-                  keyboardType: TextInputType.phone,
-                  validator: (v) => v == null || v.isEmpty ? 'Enter mother\'s phone' : null,
-                  onSaved: (v) => motherPhone = v!,
-                ),
-                const SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        dob == null
-                            ? 'Select Date of Birth'
-                            : 'DOB: ${dob!.day}/${dob!.month}/${dob!.year}',
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _selectDate(
-                          initialDate: dob,
-                          onDateSelected: (picked) => setState(() => dob = picked)),
-                      child: const Text('Pick Date'),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        joiningDate == null
-                            ? 'Select Joining Date'
-                            : 'Joined: ${joiningDate!.day}/${joiningDate!.month}/${joiningDate!.year}',
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _selectDate(
-                          initialDate: joiningDate,
-                          onDateSelected: (picked) => setState(() => joiningDate = picked)),
-                      child: const Text('Pick Date'),
-                    ),
-                  ],
-                ),
-              ],
+              if (selectedType == UserType.student) _buildStudentFields(),
 
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -222,10 +269,13 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
                   ),
                   onPressed: _isLoading ? null : _registerStudent,
                   child: _isLoading
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Register User'),
+                      ? const SizedBox(width: 20, height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Register Student'),
                 ),
               ),
+
+              const SizedBox(height: 50)
             ],
           ),
         ),
