@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../constants/user_type.dart';
 import '../../../../models/new_student_model/new_student.dart';
 import '../../../../services/firestore_service.dart';
+import '../../../../utils/UserType.dart';
 
 class RegisterStudentScreen extends StatefulWidget {
   const RegisterStudentScreen({super.key});
@@ -17,7 +17,7 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
   final FirestoreService _firestoreService = FirestoreService();
 
   bool _isLoading = false;
-  UserType selectedType = UserType.student;
+  UserType selectedType = UserType.parent; // default to parent
 
   // Form fields
   String firstName = '';
@@ -51,7 +51,7 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
   // Save student
   Future<void> _registerStudent() async {
     if (_formKey.currentState!.validate()) {
-      if (selectedType == UserType.student && (dob == null || joiningDate == null)) {
+      if (selectedType == UserType.parent && (dob == null || joiningDate == null)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select DOB and joining date')),
         );
@@ -75,6 +75,7 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
         joined: joiningDate!,
         yearlyFeeTarget: yearlyFeeTarget,
         remarks: remarks,
+        userType: selectedType,
       );
 
       setState(() => _isLoading = true);
@@ -153,22 +154,22 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
             ),
             const SizedBox(height: 12),
             TextFormField(
-              decoration: const InputDecoration(labelText: "Parent's Email"),
+              decoration: const InputDecoration(labelText: "Registered parent/guardian email"),
               validator: (v) => v == null || !v.contains('@') ? 'Enter valid email' : null,
               onSaved: (v) => parentEmail = v!.trim(),
             ),
             const SizedBox(height: 12),
             TextFormField(
-              decoration: const InputDecoration(labelText: "Father's Phone"),
+              decoration: const InputDecoration(labelText: "Primary Contact Number"),
               keyboardType: TextInputType.phone,
-              validator: (v) => v == null || v.isEmpty ? 'Enter father\'s phone' : null,
+              validator: (v) => v == null || v.isEmpty ? 'Enter primary contact number' : null,
               onSaved: (v) => fatherPhone = v!.trim(),
             ),
             const SizedBox(height: 12),
             TextFormField(
-              decoration: const InputDecoration(labelText: "Mother's Phone"),
+              decoration: const InputDecoration(labelText: "Secondary Contact Number"),
               keyboardType: TextInputType.phone,
-              validator: (v) => v == null || v.isEmpty ? 'Enter mother\'s phone' : null,
+              validator: (v) => v == null || v.isEmpty ? 'Enter secondary contact number' : null,
               onSaved: (v) => motherPhone = v!.trim(),
             ),
             const SizedBox(height: 12),
@@ -183,17 +184,27 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
               decoration: const InputDecoration(labelText: 'Remarks (optional)'),
               onSaved: (v) => remarks = v?.trim(),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+
+            // ✅ Dates in bold & highlighted teal color
             Row(
               children: [
                 Expanded(
-                  child: Text(dob == null
-                      ? 'Select Date of Birth'
-                      : 'DOB: ${dob!.day}/${dob!.month}/${dob!.year}'),
+                  child: Text(
+                    dob == null
+                        ? 'Select Date of Birth'
+                        : 'DOB: ${dob!.day}/${dob!.month}/${dob!.year}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal[700],
+                    ),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => _selectDate(
-                      initialDate: dob, onDateSelected: (picked) => setState(() => dob = picked)),
+                    initialDate: dob,
+                    onDateSelected: (picked) => setState(() => dob = picked),
+                  ),
                   child: const Text('Pick'),
                 ),
               ],
@@ -201,14 +212,21 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text(joiningDate == null
-                      ? 'Select Joining Date'
-                      : 'Joined: ${joiningDate!.day}/${joiningDate!.month}/${joiningDate!.year}'),
+                  child: Text(
+                    joiningDate == null
+                        ? 'Select Joining Date'
+                        : 'Joined: ${joiningDate!.day}/${joiningDate!.month}/${joiningDate!.year}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal[700],
+                    ),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => _selectDate(
-                      initialDate: joiningDate,
-                      onDateSelected: (picked) => setState(() => joiningDate = picked)),
+                    initialDate: joiningDate,
+                    onDateSelected: (picked) => setState(() => joiningDate = picked),
+                  ),
                   child: const Text('Pick'),
                 ),
               ],
@@ -224,7 +242,7 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register New Student'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.tealAccent[700],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -235,36 +253,16 @@ class _RegisterStudentScreenState extends State<RegisterStudentScreen> {
               Text('User ID: $uuid', style: const TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 16),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Register as:'),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: const Text('Student'),
-                    selected: selectedType == UserType.student,
-                    onSelected: (_) => setState(() => selectedType = UserType.student),
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: const Text('Admin'),
-                    selected: selectedType == UserType.admin,
-                    onSelected: (_) => setState(() => selectedType = UserType.admin),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
               _buildNameFields(),
 
-              if (selectedType == UserType.student) _buildStudentFields(),
+              if (selectedType == UserType.parent) _buildStudentFields(),
 
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: Colors.tealAccent[700],
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onPressed: _isLoading ? null : _registerStudent,

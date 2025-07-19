@@ -8,7 +8,7 @@ import '../../../utils/PaymentMethod.dart';
 class PaymentScreen extends StatefulWidget {
   final Student student;
 
-  const PaymentScreen({super.key, required this.student});
+  const PaymentScreen({super.key, required this.student });
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();

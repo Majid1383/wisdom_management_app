@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:wisdom_management_app/constants/user_type.dart';
+
 import '../../../../models/holiday_model/holiday_model.dart';
+import '../../../../models/new_student_model/new_student.dart';
 import '../../../../services/holiday_service.dart';
 import '../../../../theme/color_manager.dart';
+import '../../../../utils/UserType.dart';
 
 
 class HolidayDetailPage extends StatefulWidget {
@@ -45,7 +47,7 @@ class _HolidayDetailPageState extends State<HolidayDetailPage> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Holiday Details'),
-            backgroundColor: ColorManager.burntOrange,
+            backgroundColor: ColorManager.tealAccent,
             actions: widget.userType == UserType.admin
                 ? [
               IconButton(
@@ -111,7 +113,7 @@ class _HolidayDetailPageState extends State<HolidayDetailPage> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.info_outline, color: ColorManager.darkMint),
+                            Icon(Icons.info_outline, color: ColorManager.darkCharcoal),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -137,7 +139,7 @@ class _HolidayDetailPageState extends State<HolidayDetailPage> {
                             child: Row(
                               children: [
                                 Icon(Icons.calendar_today,
-                                    color: ColorManager.burntOrange, size: 20),
+                                    color: ColorManager.tealAccent, size: 20),
                                 const SizedBox(width: 8),
                                 Text(
                                   DateFormat('EEEE, dd MMM yyyy').format(date),

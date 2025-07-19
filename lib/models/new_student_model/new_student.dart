@@ -1,5 +1,21 @@
 import 'dart:convert';
 
+
+import '../../utils/UserType.dart';
+
+
+
+/// ✅ Helper to convert enum to string
+String userTypeToString(UserType type) {
+  return type.toString().split('.').last;
+}
+
+/// ✅ Helper to convert string to enum
+UserType userTypeFromString(String str) {
+  return UserType.values.firstWhere((e) => e.toString().split('.').last == str,
+      orElse: () => UserType.parent);
+}
+
 class Student {
   final String uuid;
 
@@ -10,14 +26,17 @@ class Student {
   final String studentClass;
   final String school;
   final DateTime dob;
-  final DateTime joined;          // admission date
+  final DateTime joined; // admission date
   final String fatherPhone;
   final String motherPhone;
   final String address;
   final String? parentEmail;
 
-  final double yearlyFeeTarget;  // e.g., ₹30000
-  final String? remarks;         // optional
+  final double yearlyFeeTarget; // e.g., ₹30000
+  final String? remarks; // optional
+
+  /// ✅ new field
+  final UserType userType;
 
   Student({
     required this.uuid,
@@ -34,6 +53,7 @@ class Student {
     this.parentEmail,
     required this.yearlyFeeTarget,
     this.remarks,
+    this.userType = UserType.parent, // default to parent
   });
 
   /// ✅ Combine into full name if needed
@@ -60,6 +80,7 @@ class Student {
     String? parentEmail,
     double? yearlyFeeTarget,
     String? remarks,
+    UserType? userType,
   }) {
     return Student(
       uuid: uuid ?? this.uuid,
@@ -76,6 +97,7 @@ class Student {
       parentEmail: parentEmail ?? this.parentEmail,
       yearlyFeeTarget: yearlyFeeTarget ?? this.yearlyFeeTarget,
       remarks: remarks ?? this.remarks,
+      userType: userType ?? this.userType,
     );
   }
 
@@ -96,6 +118,9 @@ class Student {
       parentEmail: map['parentEmail'],
       yearlyFeeTarget: (map['yearlyFeeTarget'] ?? 0).toDouble(),
       remarks: map['remarks'],
+      userType: map['userType'] != null
+          ? userTypeFromString(map['userType'])
+          : UserType.parent, // default
     );
   }
 
@@ -116,6 +141,7 @@ class Student {
       'parentEmail': parentEmail,
       'yearlyFeeTarget': yearlyFeeTarget,
       'remarks': remarks,
+      'userType': userTypeToString(userType),
     };
   }
 

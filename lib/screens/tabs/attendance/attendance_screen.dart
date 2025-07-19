@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:wisdom_management_app/models/new_student_model/new_student.dart';
 import '../../../theme/color_manager.dart';
 import '../../../widgets /global_drawer/global_drawer.dart';
 
 class AttendanceScreen extends StatelessWidget {
-  const AttendanceScreen({super.key});
+  const AttendanceScreen({super.key, required Student student});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,7 @@ class AttendanceScreen extends StatelessWidget {
           Text(
             '${_monthName(monthDate.month)} ${monthDate.year}',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: ColorManager.burntOrange,
+              color: ColorManager.tealAccent,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -31,6 +32,7 @@ class AttendanceScreen extends StatelessWidget {
     });
 
     return Scaffold(
+      appBar: AppBar(title: Text('Attendance')),
       backgroundColor: ColorManager.lightCoolGrey,
       drawer:  GlobalDrawer(),
       body: Padding(
@@ -65,9 +67,9 @@ class AttendanceScreen extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            color: isPresent ? ColorManager.darkMint : Colors.transparent,
+            color: isPresent ? ColorManager.darkCharcoal : Colors.transparent,
             border: Border.all(
-              color: isPresent ? ColorManager.mintGreen : ColorManager.darkMint,
+              color: isPresent ? ColorManager.mintGreen : ColorManager.darkCharcoal,
               width: 1.5,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -77,8 +79,8 @@ class AttendanceScreen extends StatelessWidget {
             '$day',
             style: TextStyle(
               color: isPresent
-                  ? ColorManager.goldenSand
-                  : ColorManager.goldenSand.withOpacity(0.7),
+                  ? ColorManager.charcoalGray
+                  : ColorManager.charcoalGray.withOpacity(0.7),
               fontWeight: FontWeight.bold,
             ),
           ),

@@ -18,19 +18,19 @@ class AdminDashboardCards extends StatelessWidget {
           title: 'Total Students',
           value: '24',
           icon: Icons.people,
-          color: ColorManager.burntOrange,
+          color: ColorManager.tealAccent,
         ),
         const _DashboardCard(
           title: 'Fees Collected',
           value: '₹18,500',
           icon: Icons.attach_money,
-          color: ColorManager.goldenSand,
+          color: ColorManager.charcoalGray,
         ),
         _DashboardCard(
           title: 'Pending Fees',
           value: '₹4,000',
           icon: Icons.money_off,
-          color: ColorManager.darkMint,
+          color: ColorManager.darkCharcoal,
         ),
         const _DashboardCard(
           title: 'Lectures Today',

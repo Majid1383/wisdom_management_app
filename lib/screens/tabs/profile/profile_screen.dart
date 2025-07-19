@@ -221,6 +221,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wisdom_management_app/models/new_student_model/new_student.dart' show Student;
 import 'package:wisdom_management_app/services/auth_service.dart';
+import '../../../utils/logout_utils.dart';
 import '../../login/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -350,26 +351,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 leading: const Icon(Icons.logout, color: Colors.deepPurple),
                 title: const Text('Logout'),
                 onTap: () async {
-                  final shouldLogout = await showDialog<bool>(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?', style: TextStyle(color: Colors.black)),
-                      actions: [
-                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Logout')),
-                      ],
-                    ),
-                  );
-                  if (shouldLogout == true) {
-                    await _authService.logout();
-                    if (!mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          (route) => false,
-                    );
-                  }
+                  await LogoutUtils.logoutUser(context);
                 },
               ),
             ),

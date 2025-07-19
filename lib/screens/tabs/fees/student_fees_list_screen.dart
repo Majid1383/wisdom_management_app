@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:wisdom_management_app/constants/user_type.dart';
 import 'package:wisdom_management_app/screens/tabs/fees/student_pending_payment_screen.dart';
 import '../../../models/new_student_model/new_student.dart';
 import '../../../services/firestore_service.dart';
 import '../../../services/student_service.dart';
+import '../../../utils/UserType.dart';
 
 
 class StudentsFeesListScreen extends StatefulWidget {

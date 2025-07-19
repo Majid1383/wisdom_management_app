@@ -33,6 +33,7 @@ Future<User?> register({required String email, required String password}) async 
 Future<void> logout() async {
   await
    _auth.signOut();
+  print('DEBUG: USER LOGGED OUT SUCCESSFULLY!');
 }
 
 
