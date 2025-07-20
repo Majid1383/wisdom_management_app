@@ -67,7 +67,31 @@ class HolidayService {
   }
 
 
+  Future<List<DateTime>> getWorkingDays(DateTime month) async {
+    final firstDay = DateTime(month.year, month.month, 1);
+    final lastDay = DateTime(month.year, month.month + 1, 0);
 
+    // Fetch holidays from Firestore
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('holidays')
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(firstDay))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(lastDay))
+        .get();
+
+    final holidayDates = querySnapshot.docs.map((doc) {
+      return (doc['date'] as Timestamp).toDate();
+    }).map((d) => DateTime(d.year, d.month, d.day)).toSet();
+
+    List<DateTime> workingDays = [];
+
+    for (DateTime d = firstDay; !d.isAfter(lastDay); d = d.add(const Duration(days: 1))) {
+      if (d.weekday != DateTime.sunday && !holidayDates.contains(DateTime(d.year, d.month, d.day))) {
+        workingDays.add(d);
+      }
+    }
+
+    return workingDays;
+  }
 
 
 }

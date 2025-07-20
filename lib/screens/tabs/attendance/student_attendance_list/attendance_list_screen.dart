@@ -65,7 +65,7 @@ class AttendanceListScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => AttendanceCalendarScreen(
-                          students: students,  // or: students: [student],
+                          students: [student],  // or: students: [student],
                           userType: userType,
                         ),
                       ),

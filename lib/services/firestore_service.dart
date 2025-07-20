@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wisdom_management_app/models/holiday_model/holiday_model.dart';
 
+import '../models/attendance_model/monthly_attendance.dart';
 import '../models/new_student_model/new_student.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final CollectionReference _attendanceCollection =
+  FirebaseFirestore.instance.collection('attendance');
 
   Future<void> addStudent(Student student) async {
     try {
@@ -56,5 +60,43 @@ class FirestoreService {
   Future<void> updateStudent(Student student) async {
     await _firestore.collection('students').doc(student.uuid).update(student.toMap());
   }
+
+
+  /// Fetch attendance by date range for a student
+  Future<List<Attendance>> getAttendanceByDateRange(
+      String studentId,
+      DateTime startDate,
+      DateTime endDate,
+      ) async {
+    final querySnapshot = await _attendanceCollection
+        .where('studentId', isEqualTo: studentId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .orderBy('date')
+        .get();
+
+    return querySnapshot.docs.map((doc) {
+      return Attendance.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+    }).toList();
+  }
+
+
+  Future<List<Attendance>> getMonthlyAttendance(String studentId, DateTime month) async {
+    final startOfMonth = DateTime(month.year, month.month, 1);
+    final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59); // last day
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('attendance')
+        .where('studentId', isEqualTo: studentId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+        .get();
+
+    return querySnapshot.docs.map((doc) {
+      return Attendance.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+    }).toList();
+  }
+
+
 }
 
